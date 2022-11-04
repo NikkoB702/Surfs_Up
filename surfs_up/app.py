@@ -37,7 +37,7 @@ session = Session(engine)
 
 app = Flask(__name__)
 
-# Create welcome route.
+# Define welcome route and add routes.
 
 @app.route("/")
 def welcome():
@@ -51,7 +51,7 @@ def welcome():
     /api/v1.0/temp/start/end
     ''')
 
-# Create route for Precipitation analysis.
+# Create route for precipitation analysis.
 
 @app.route('/api/v1.0/precipitation')
 
@@ -59,16 +59,16 @@ def welcome():
 
 def precipitation():
 
-    # Add code that calculates date from one year ago from most recent date in database.
+    # Add code that calculates date from one year ago to the most recent date in database.
 
     prev_year= dt.datetime(2017, 8, 23) - dt.timedelta(days = 365)
 
-    # Query through database to get date and precipitation for previous year.
+    # Query through database to get the date and precipitation for previous year.
 
     precipitation = session.query(Measurement.date, Measurement.prcp).\
         filter(Measurement.date >= prev_year).all()
 
-    # Create dictionary with date as key and precipitation as value in key:value pair.
+    # Create a dictionary with date as the key and precipitation as the value.
 
     precip = {date: prcp for date, prcp in precipitation}
 
@@ -76,68 +76,81 @@ def precipitation():
 
     return jsonify(precip)
 
-# Create route for Stations route
+# Create route for stations route
 
 @app.route('/api/v1.0/stations')
 
 # Create stations function
+
 def stations():
 
     # Query to get all the station names
+
     results = session.query(Station.station).all()
 
     # Unravel and convert results to a list
+
     stations = list(np.ravel(results))
 
-    # Format json to display stations as a dictionary key:value pair
+    # Format json to display stations as the dictionary key.
+
     return jsonify(stations=stations)
 
-# Create route for Temperature route
+# Create route for temperature route.
 
 @app.route('/api/v1.0/tobs')
 
-# Create stations function
+# Create stations function.
 
 def temp_monthly():
 
-    #Add code that calculates date from one year ago from most recent date in database
+    # Add code that calculates date from one year ago to the most recent date in database.
 
     prev_year= dt.datetime(2017, 8, 23) - dt.timedelta(days = 365)
 
-    # Query the primary station for all the tobs (temperature observations) from previous year
+    # Query the primary station for all the tobs from previous year.
 
     results = session.query(Measurement.tobs).\
         filter(Measurement.station == 'USC00519281').\
         filter(Measurement.date >= prev_year).all()
 
-    # Unravel results into a 1dimensional array
+    # Unravel results into a one dimensional array.
+
     temps = list(np.ravel(results))
 
-    # Format json to display stations as a dictionary key:value pair
+    # Format json to display stations as the dictionary key.
+
     return jsonify(temps=temps)
 
-# Create route for Statistics 
+# Create route for statistics.
+
 @app.route("/api/v1.0/temp/<start>")
 @app.route("/api/v1.0/temp/<start>/<end>")
 
-# Create function called stats and add 'start' and 'end' parameters. For now set both to 'None'
+# Create function called stats and add 'start' and 'end' parameters.
+
 def stats(start=None, end=None):
 
-    #Query to select minimum, average and maximum temps from database
+    #Query to select minimum, average and maximum temps from database.
+
     sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
 
-    # Create 'If-Not' statement to determine start and end date
+    # Create 'If-Not' statement to determine start and end date.
+
     if not end:
         results = session.query(*sel).\
             filter(Measurement.date >= start).all()
 
-        # Unravel results into a 1dimensional array
+        # Unravel results into a one dimensional array.
+
         temps = list(np.ravel(results))
 
-        # Format json to display stations as a dictionary key:value pair
+        # Format json to display stations as the dictionary key.
+
         return jsonify(temps)
 
-    # Query to calculate temp min, max and average with the start dates
+    # Query to calculate temp min, max and average with the start dates.
+
     results = session.query(*sel).\
         filter(Measurement.date >= start).\
         filter(Measurement.date <= end).all()
